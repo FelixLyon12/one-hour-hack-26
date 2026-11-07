@@ -1,7 +1,6 @@
 """MC WHACK: every call to whack() becomes a rap verse, and then a live performance.
 
     python3 spit.py            # one verse, printed + verse.html player
-    python3 spit.py --battle   # two MCs, two whack() calls, one winner
 
 What whack() controls:
   * how many words it returns  -> how many bars you get and the BPM
@@ -12,7 +11,6 @@ What whack() controls:
 import json
 import re
 import random
-import sys
 from collections import Counter
 from pathlib import Path
 
@@ -313,7 +311,6 @@ def build_verse(words, file_words):
         "words": words, "count": n, "bars": len(lines), "bpm": bpm, "mood": mood,
         "hook": hook_word, "hook_count": hook_count, "lines": lines + hook,
         "flow": FLOW, "true_rhymes": whack_rhymes,
-        "score": whack_rhymes * 10 + len(set(words)) + hook_count,
     }
 
 
@@ -355,7 +352,7 @@ def show(v):
         print(f"  {body}{' ' * max(1, 62 - plain)}\033[2m{n}\033[0m")
     print(f"\n  \033[2munderlined = end rhyme · bold = internal rhyme · same colour = same rhyme family"
           f"\n  every bar = 12 syllables on the 16ths, last one lands on the snare"
-          f"\n  {v['true_rhymes']} whack-on-whack rhymes  ·  score {v['score']}\033[0m")
+          f"\n  {v['true_rhymes']} rhymes built from whack() words\033[0m")
 
 
 def write_player(verses, out="verse.html"):
@@ -364,24 +361,14 @@ def write_player(verses, out="verse.html"):
     print(f"\n🔊 Open {Path(out).resolve()} in a browser and press DROP THE BEAT.\n")
 
 
-def battle():
-    """Two MCs, two whack() calls, one winner."""
-    a, b = spit("MC QUACKSTAR"), spit("LIL HONK")
-    a["winner"], b["winner"] = a["score"] >= b["score"], a["score"] < b["score"]
-    return [a, b]
+def verse():
+    """One MC, one whack() call, one verse."""
+    return [spit("MC WHACK")]
 
 
 def main():
-    if "--battle" in sys.argv:
-        verses = battle()
-        for v in verses:
-            show(v)
-        a, b = verses
-        winner = a if a["winner"] else b
-        print(f"\n🏆 \033[1;93m{winner['mc']} WINS\033[0m  ({a['score']} vs {b['score']})")
-    else:
-        verses = [spit("MC WHACK")]
-        show(verses[0])
+    verses = verse()
+    show(verses[0])
     write_player(verses)
 
 

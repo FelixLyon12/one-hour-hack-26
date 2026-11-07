@@ -50,7 +50,7 @@
   <div id="mc"></div>
   <div class="stats" id="stats"></div>
   <button id="go">▶ DROP THE BEAT</button>
-  <button id="again" style="background:#3a2d5c;box-shadow:0 6px 0 #1d1530">🎲 NEW BATTLE</button>
+  <button id="again" style="background:#3a2d5c;box-shadow:0 6px 0 #1d1530">🎲 NEW VERSE</button>
   <div id="speakers"><div class="spk"></div><div class="spk"></div></div>
 </header>
 <div id="lyrics"></div>
@@ -114,9 +114,9 @@ function showStats(v) {
     `<span class="stat">hook <b>${v.hook.toUpperCase()}</b> ×${v.hook_count}</span>`;
 }
 // No baked-in verses? Then run the real spit.py + whack.py right here in the browser (Pyodide),
-// so every page load (and every NEW BATTLE) is a fresh whack() call.
+// so every page load (and every NEW VERSE) is a fresh whack() call.
 let py;
-async function liveBattle() {
+async function liveVerse() {
   const go = document.getElementById("go"), again = document.getElementById("again");
   go.disabled = again.disabled = true;
   document.getElementById("mc").textContent = "calling whack()…";
@@ -133,7 +133,7 @@ async function liveBattle() {
     }
     py.runPython("import sys; sys.path.insert(0, '.')");
   }
-  VERSES = JSON.parse(py.runPython("import json, spit; json.dumps(spit.battle())"));
+  VERSES = JSON.parse(py.runPython("import json, spit; json.dumps(spit.verse())"));
   render();
   go.disabled = again.disabled = false;
 }
@@ -142,12 +142,12 @@ if (VERSES.length) {
   render();
   document.getElementById("again").style.display = "none";
 } else {
-  liveBattle().catch(e => {
+  liveVerse().catch(e => {
     document.getElementById("mc").textContent = "couldn't load Python here: run python3 spit.py instead";
     console.error(e);
   });
 }
-document.getElementById("again").onclick = () => liveBattle();
+document.getElementById("again").onclick = () => liveVerse();
 
 // ---- the beat: a tiny synth drum machine ----
 let ctx;
@@ -231,7 +231,7 @@ async function perform() {
   }
   document.querySelectorAll(".hit").forEach(e => e.classList.remove("hit"));
   document.getElementById("go").disabled = false;
-  document.getElementById("mc").textContent = "🎤 mic drop. hit NEW BATTLE for a fresh whack().";
+  document.getElementById("mc").textContent = "🎤 mic drop. hit NEW VERSE for a fresh whack().";
 }
 document.getElementById("go").onclick = perform;
 </script>
