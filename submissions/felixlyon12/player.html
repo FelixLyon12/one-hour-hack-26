@@ -57,6 +57,8 @@
 <div id="source"></div>
 <script>
 let VERSES = /*VERSES*/[];
+let ctx, master;
+let runId = 0;  // bumps on every stop, so stale timers from an old performance do nothing
 
 const lyrics = document.getElementById("lyrics");
 let lineEls = [];   // [verseIndex][lineIndex]
@@ -118,6 +120,7 @@ function showStats(v) {
 let py;
 async function liveVerse() {
   const go = document.getElementById("go"), again = document.getElementById("again");
+  stopPerformance();          // cut the beat and the voice before the new verse
   go.disabled = again.disabled = true;
   document.getElementById("mc").textContent = "calling whack()…";
   if (!py) {
@@ -150,12 +153,18 @@ if (VERSES.length) {
 document.getElementById("again").onclick = () => liveVerse();
 
 // ---- the beat: a tiny synth drum machine ----
-let ctx;
+function stopPerformance() {
+  runId++;
+  if (master) { master.disconnect(); master = null; }
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  document.querySelectorAll(".on, .hit").forEach(e => e.classList.remove("on", "hit"));
+  document.getElementById("go").disabled = false;
+}
 function kick(t) {
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.25);
   g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-  o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.3);
+  o.connect(g).connect(master); o.start(t); o.stop(t + 0.3);
 }
 function noise(t, len, freq, vol) {
   const buf = ctx.createBuffer(1, ctx.sampleRate * len, ctx.sampleRate);
@@ -164,7 +173,7 @@ function noise(t, len, freq, vol) {
   const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
   s.buffer = buf; f.type = "highpass"; f.frequency.value = freq;
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
-  s.connect(f).connect(g).connect(ctx.destination); s.start(t);
+  s.connect(f).connect(g).connect(master); s.start(t);
 }
 const KICK = [0, 3, 8, 10], SNARE = [4, 12];
 function thump() {
@@ -183,8 +192,12 @@ function rap(text, seconds) {
 }
 
 async function perform() {
+  stopPerformance();
+  const run = runId;
   ctx = ctx || new AudioContext();
   await ctx.resume();
+  master = ctx.createGain();
+  master.connect(ctx.destination);
   document.getElementById("go").disabled = true;
   for (let vi = 0; vi < VERSES.length; vi++) {
     const v = VERSES[vi];
@@ -197,9 +210,10 @@ async function perform() {
     await new Promise(done => {
       let n = 0;
       const tick = () => {
+        if (run !== runId) return done();
         // schedule 16ths slightly ahead, and fire visuals on time
         const t = start + n * step;
-        if (KICK.includes(n % 16)) { kick(t); setTimeout(thump, (t - ctx.currentTime) * 1000); }
+        if (KICK.includes(n % 16)) { kick(t); setTimeout(() => run === runId && thump(), (t - ctx.currentTime) * 1000); }
         if (SNARE.includes(n % 16)) noise(t, 0.18, 1200, 0.6);
         if (n % 2 === 0) noise(t, 0.04, 7000, 0.25);
         const li = Math.floor(n / stepsPerLine) - 1;
@@ -207,6 +221,7 @@ async function perform() {
         if (li >= 0 && li < v.lines.length && sub % scale === 0) {
           const el = lineEls[vi][li], st = sub / scale;
           setTimeout(() => {
+            if (run !== runId) return;
             el.querySelectorAll(`.w[data-step="${st}"]`).forEach(w => w.classList.add("hit"));
             const cell = el.querySelectorAll(".grid i")[st];
             if (v.flow.includes(st)) cell.classList.add("hit");
@@ -214,6 +229,7 @@ async function perform() {
         }
         if (n % stepsPerLine === 0 && li >= 0 && li < v.lines.length) {
           setTimeout(() => {
+            if (run !== runId) return;
             lineEls[vi].forEach(e => e.classList.remove("on"));
             const el = lineEls[vi][li];
             el.classList.add("on");
@@ -227,6 +243,7 @@ async function perform() {
       };
       tick();
     });
+    if (run !== runId) return;  // stopped (e.g. NEW VERSE): leave the page to the new verse
     lineEls[vi].forEach(e => e.classList.remove("on"));
   }
   document.querySelectorAll(".hit").forEach(e => e.classList.remove("hit"));
