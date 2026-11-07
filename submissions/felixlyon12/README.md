@@ -2,7 +2,7 @@
 
 **By:** Felix Lyon
 
-**Pitch:** every call to `whack()` becomes a rap verse, and then a live performance with a synth beat, a robot rapper and karaoke lyrics.
+**Pitch:** every call to `whack()` becomes a rap verse, and then a live performance with a synth beat, a distorted guitar riff, a robot rapper and karaoke lyrics.
 
 ## How to run it
 

@@ -179,6 +179,35 @@ function noise(t, len, freq, vol) {
   s.connect(f).connect(g).connect(master); s.start(t);
 }
 const KICK = [0, 3, 8, 10], SNARE = [4, 12];
+
+// ---- the guitar: a 2-bar power-chord riff in E minor, looped on the 16ths ----
+const E2 = 82.41, G2 = 98.0, A2 = 110.0, BB2 = 116.54, D3 = 146.83;
+const RIFF = [
+  { 0: E2, 3: E2, 6: G2, 8: A2, 11: G2, 14: E2 },   // bar 1
+  { 0: E2, 3: E2, 6: G2, 8: BB2, 10: A2, 12: G2, 14: D3 },  // bar 2
+];
+let fuzz;
+function distortion() {
+  if (fuzz && fuzz.context === ctx) return fuzz;
+  const curve = new Float32Array(1024);
+  for (let i = 0; i < curve.length; i++) { const x = i / 512 - 1; curve[i] = Math.tanh(4 * x); }
+  fuzz = ctx.createWaveShaper(); fuzz.curve = curve; fuzz.oversample = "4x";
+  return fuzz;
+}
+function guitar(t, freq, len) {
+  const shaper = ctx.createWaveShaper(); shaper.curve = distortion().curve;
+  const tone = ctx.createBiquadFilter(), g = ctx.createGain();
+  tone.type = "lowpass"; tone.frequency.setValueAtTime(2600, t); tone.frequency.exponentialRampToValueAtTime(700, t + len);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.11, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.001, t + len);
+  shaper.connect(tone).connect(g).connect(master);
+  [freq, freq * 1.5, freq * 2].forEach((f, i) => {   // root, fifth, octave = a power chord
+    const o = ctx.createOscillator(), og = ctx.createGain();
+    o.type = "sawtooth"; o.frequency.value = f; o.detune.value = (i - 1) * 6;
+    og.gain.value = [0.5, 0.35, 0.2][i];
+    o.connect(og).connect(shaper); o.start(t); o.stop(t + len + 0.05);
+  });
+}
 function thump() {
   document.querySelectorAll(".spk").forEach(s => { s.classList.add("thump"); setTimeout(() => s.classList.remove("thump"), 90); });
 }
@@ -219,6 +248,8 @@ async function perform() {
         if (KICK.includes(n % 16)) { kick(t); setTimeout(() => run === runId && thump(), (t - ctx.currentTime) * 1000); }
         if (SNARE.includes(n % 16)) noise(t, 0.18, 1200, 0.6);
         if (n % 2 === 0) noise(t, 0.04, 7000, 0.25);
+        const note = RIFF[Math.floor(n / 16) % 2][n % 16];
+        if (note) guitar(t, note, step * 1.8);
         const li = Math.floor(n / stepsPerLine) - 1;
         const scale = stepsPerLine / 16, sub = n % stepsPerLine;
         if (li >= 0 && li < v.lines.length && sub % scale === 0) {
