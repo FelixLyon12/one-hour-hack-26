@@ -132,7 +132,9 @@ async function liveVerse() {
     });
     py = await loadPyodide();
     for (const f of ["whack.py", "spit.py"]) {
-      py.FS.writeFile(f, await (await fetch(f, { cache: "no-store" })).text());
+      const res = await fetch(`${f}?v=${Date.now()}`, { cache: "no-store" });  // skip stale CDN copies
+      if (!res.ok) throw new Error(`couldn't fetch ${f} (HTTP ${res.status})`);
+      py.FS.writeFile(f, await res.text());
     }
     py.runPython("import sys; sys.path.insert(0, '.')");
   }
@@ -147,6 +149,7 @@ if (VERSES.length) {
 } else {
   liveVerse().catch(e => {
     document.getElementById("mc").textContent = "couldn't load Python here: run python3 spit.py instead";
+    document.getElementById("source").textContent = "error: " + (e && e.message ? e.message : e);
     console.error(e);
   });
 }

@@ -366,6 +366,9 @@ def verse():
     return [spit("MC WHACK")]
 
 
+battle = verse  # older cached copies of player.html call battle()
+
+
 def main():
     verses = verse()
     show(verses[0])
