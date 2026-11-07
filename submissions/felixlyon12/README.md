@@ -21,11 +21,13 @@ Nothing is hand-picked. Every part of the song comes from `whack()`:
 |---|---|
 | **how many words** (1–100) | how many bars (4–16) and the **BPM** (71–170) |
 | **the order of the words** | which rhyme families the verse uses, in order. All 42 words sit in rhyme families (`whack/hack/quack/stack`, `io/overflow/demo`…), and each couplet is built on one |
-| **the `whack` file** | the most-repeated word in the file becomes the **HOOK** ("DUCK DUCK DUCK… Everybody say DUCK!") |
+| **the `whack` file** | the most-repeated word in the file becomes the **HOOK**, and the hook spends every copy of it ("Everybody say GOOSE! GOOSE! GOOSE!…") |
 | **sponsor words vs suffering words** | the mood: **FLEXING** ("Sponsored by bloomberg, yeah I'm flexing on…") or **CRYING AT 3AM** ("Ten cups of coffee and I'm still on…") |
 | **everything else** | the first half of each bar is built around one of the other words |
 
 ## Bars that make sense *and* fit the beat
+
+- **No word is used more times than `whack()` drew it.** Each verse gets a word budget: a word drawn 3 times can appear at most 3 times, and words that weren't drawn can't appear at all. The budget covers the hand-written halves too ("Capital One" spends `capital` and `one`). When the budget runs dry, a bar opens with a neutral phrase like "Listen up," instead.
 
 - **Every bar is a real sentence.** The first half is built around a `whack()` word, with the right article ("Blame it on **the stack**,", "Shout out to **Bloomberg**,"). The second half is one of about 110 hand-written closers that end on a rhyme ("…my code is out of **whack**").
 - **Rhymes inside the line.** When `whack()` gives a word that rhymes with the closer, it goes in the first half: *"Blame it on a **whack**, it's overflowing the __stack__"*, *"Got a **segfault** on my mind, and it's all my __fault__"*.

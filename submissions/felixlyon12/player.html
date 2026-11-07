@@ -67,7 +67,7 @@ VERSES.forEach((v, vi) => {
   lyrics.appendChild(sec);
   lineEls[vi] = [];
   v.lines.forEach((l, li) => {
-    if (li === v.bars || li === v.bars + 2) {
+    if (li === v.bars) {
       const h = document.createElement("div"); h.className = "sec"; h.textContent = "HOOK"; lyrics.appendChild(h);
     }
     const d = document.createElement("div");

@@ -16,7 +16,7 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-from whack import whack
+from whack import WORDS, whack
 
 # Every one of the 42 words belongs to a rhyme family, with some everyday rhymes to fall back on.
 FAMILIES = {
@@ -148,7 +148,9 @@ for _fam, _lines in CLOSERS.items():  # closers can end on words the family list
         if _last not in _members and _last not in _fillers:
             _fillers.append(_last)
 RHYMES_OF = {fam: set(m) | set(f) for fam, (m, f) in FAMILIES.items()}
-ADLIBS = ["yo,", "uh,", "yeah,", "skrrt,", "huh,", "quack,"]
+ADLIBS = ["yo,", "uh,", "yeah,", "skrrt,", "huh,", "ayy,"]
+# Openers that use no list words, for when the budget runs dry.
+PLAIN_OPENERS = ["Listen up,", "Here we go,", "Check it out,", "Yeah, you know,", "Turn it up,"]
 
 SYL_OVERRIDES = {
     "io": 2, "oculus": 3, "warwick": 2, "wace": 1, "capital": 3, "bloomberg": 2,
@@ -201,31 +203,53 @@ def line_tokens(words, fam):
     return toks
 
 
-def build_line(mood, fam, words, used, want_end=None):
+LIST_WORDS = set(WORDS)
+
+
+def list_words_in(text):
+    """Which of the 42 whack() words a piece of text uses (e.g. 'Capital One' -> capital, one)."""
+    found = Counter()
+    for w in re.findall(r"[a-z']+", text.lower()):
+        w = w[:-2] if w.endswith("'s") else w
+        if w in LIST_WORDS:
+            found[w] += 1
+    return found
+
+
+def fits(need, budget):
+    return all(budget[w] >= k for w, k in need.items())
+
+
+def build_line(mood, fam, budget, used):
     """An opener built on a whack() word + a hand-written closer, padded to exactly 12 syllables.
-    Prefers a whack() word that rhymes with the closer (an internal rhyme)."""
-    present = list(dict.fromkeys(words))
+    Each whack() word can only be used as many times as whack() returned it."""
     best = None
+    nouns = [w for w in budget if budget[w] > 0] + [None]
     for closer in CLOSERS[fam]:
         if closer in used:
             continue
         end = closer.split()[-1].lower()
-        for opener in OPENERS[mood]:
-            for w in present:
-                text = opener.format(n=NOUN[w]) + " " + closer
+        for opener in OPENERS[mood] + PLAIN_OPENERS:
+            plain = opener in PLAIN_OPENERS
+            for w in ([None] if plain else nouns[:-1]):
+                text = (opener if plain else opener.format(n=NOUN[w])) + " " + closer
+                need = list_words_in(text)
+                if not fits(need, budget):
+                    continue
                 gap = SYLLABLES_PER_BAR - syl(text)
                 if gap < 0:
                     continue
-                rhymes = (w in RHYMES_OF[fam] and w != end) + (end in words) + (end == want_end)
-                key = (gap - 4 * rhymes + 3 * used[opener] + 0.5 * used[w], random.random())
+                rhymes = (w in RHYMES_OF[fam] and w != end) + (end in need)
+                key = (gap - 4 * rhymes - 2 * sum(need.values()) + 3 * used[opener]
+                       + 6 * plain, random.random())
                 if best is None or key < best[0]:
-                    best = (key, text, closer, opener, w, gap)
+                    best = (key, text, closer, opener, w, gap, need)
     if best is None:
         return None
-    _, text, closer, opener, w, gap = best
+    _, text, closer, opener, w, gap, need = best
     used[closer] += 1
     used[opener] += 1
-    used[w] += 1
+    budget.subtract(need)
     out = text.split()
     if gap:
         if out[0] not in ("I", "I'm") and not out[0][1:2].isupper():
@@ -233,53 +257,61 @@ def build_line(mood, fam, words, used, want_end=None):
         out = [random.choice(ADLIBS) for _ in range(gap)] + out
         out[0] = out[0].capitalize()
     end = closer.split()[-1].lower()
-    return {"tokens": line_tokens(out, fam), "end": end, "family": fam,
-            "whack": end in words, "whack_rhymes": int(w in RHYMES_OF[fam] and w != end)}
+    return {"tokens": line_tokens(out, fam), "end": end, "family": fam, "need": need,
+            "whack": end in need, "whack_rhymes": int(bool(w) and w in RHYMES_OF[fam] and w != end)}
 
 
-def hook_line(lead, words):
-    """A hook line built only from the hook words, padded to exactly 12 syllables."""
-    toks = [tok(t + " ", "text") for t in lead]
+def hook_lines(hook_word, count):
+    """The hook spends every copy of the most-repeated word, and nothing else from the list."""
+    word = hook_word.upper() + "!"
+    lines, toks, left = [], [tok("Everybody ", "text"), tok("say ", "text")], count
     while True:
-        for w in words:
-            if sum(t["syl"] for t in toks) + syl(w) <= SYLLABLES_PER_BAR:
-                toks.append(tok(w.upper() + "! ", "end", "hook"))
+        while left and sum(t["syl"] for t in toks) + syl(word) <= SYLLABLES_PER_BAR:
+            toks.append(tok(word + " ", "end", "hook"))
+            left -= 1
         gap = SYLLABLES_PER_BAR - sum(t["syl"] for t in toks)
-        if gap < min(syl(w) for w in words):
-            break
-    toks += [tok("yeah!", "adlib") for _ in range(gap)]  # noqa
-    return {"tokens": toks, "end": words[0], "family": "hook", "whack": True, "whack_rhymes": 0}
+        toks += [tok(random.choice(["yeah! ", "ho! ", "hey! "]), "adlib") for _ in range(gap)]
+        toks[-1]["t"] = toks[-1]["t"].strip()
+        lines.append({"tokens": toks, "end": hook_word, "family": "hook", "whack": True,
+                      "whack_rhymes": 0, "need": Counter()})
+        if not left:
+            return lines
+        toks = [tok("Run ", "text"), tok("it ", "text"), tok("back: ", "text")]
 
 
 def build_verse(words, file_words):
     """Turns one whack() result into a verse. Everything comes from whack()."""
     n = len(words)
-    bars = max(4, min(16, 2 * ((n + 6) // 12) + 2))
+    target = max(4, min(16, 2 * ((n + 6) // 12) + 2))
     bpm = 70 + n  # 71..170
     sponsor = sum(w in SPONSORS for w in words)
     pain = sum(w in SUFFERING for w in words)
     mood = "FLEXING" if sponsor > pain else "CRYING AT 3AM"
-    counts = Counter(file_words).most_common(2)
-    hook_word, hook_count = counts[0]
-    hook_word_2 = counts[-1][0]
+    hook_word, hook_count = Counter(file_words).most_common(1)[0]
 
+    budget = Counter(words)  # each word as many times as whack() gave it, and no more
+    budget[hook_word] = 0    # the hook gets every copy of its word
     lines, used = [], Counter()
     fams = list(dict.fromkeys(FAMILY_OF[w] for w in words))  # rhyme families, in whack() order
     spare = [f for f in CLOSERS if f not in fams]
     random.shuffle(spare)
     for fam in fams + spare:  # families whack() gave come first, then any others
-        if len(lines) >= bars:
+        if len(lines) >= target:
             break
-        pair = [build_line(mood, fam, words, used) for _ in range(2)]
+        saved_budget, saved_used = budget.copy(), used.copy()
+        pair = [build_line(mood, fam, budget, used) for _ in range(2)]
         if all(pair):
             lines += pair
+        else:
+            budget, used = saved_budget, saved_used
 
-    hook = [hook_line([], [hook_word, hook_word_2]),
-            hook_line(["Everybody say"], [hook_word])]
+    hook = hook_lines(hook_word, hook_count)
     whack_rhymes = sum(l["whack_rhymes"] + l["whack"] for l in lines)
+    for l in lines + hook:
+        l.pop("need")
     return {
-        "words": words, "count": n, "bars": bars, "bpm": bpm, "mood": mood,
-        "hook": hook_word, "hook_count": hook_count, "lines": lines + hook + hook,
+        "words": words, "count": n, "bars": len(lines), "bpm": bpm, "mood": mood,
+        "hook": hook_word, "hook_count": hook_count, "lines": lines + hook,
         "flow": FLOW, "true_rhymes": whack_rhymes,
         "score": whack_rhymes * 10 + len(set(words)) + hook_count,
     }
@@ -304,9 +336,7 @@ def show(v):
     fams = {}
     for i, line in enumerate(v["lines"]):
         if i == v["bars"]:
-            print("\n  \033[2m[HOOK x2]\033[0m")
-        if i >= v["bars"] + 2:
-            break
+            print("\n  \033[2m[HOOK]\033[0m")
         c = fams.setdefault(line["family"], COLOURS[len(fams) % len(COLOURS)])
         parts, plain = [], 0
         for t in line["tokens"]:
