@@ -32,6 +32,7 @@ Nothing is hand-picked. Every part of the song comes from `whack()`:
 - **Every bar is a real sentence.** The first half is built around a `whack()` word, with the right article ("Blame it on **the stack**,", "Shout out to **Bloomberg**,"). The second half is one of about 110 hand-written closers that end on a rhyme ("…my code is out of **whack**").
 - **Rhymes inside the line.** When `whack()` gives a word that rhymes with the closer, it goes in the first half: *"Blame it on a **whack**, it's overflowing the __stack__"*, *"Got a **segfault** on my mind, and it's all my __fault__"*.
 - **Every bar is exactly 12 syllables.** A hand-tuned syllable counter knows that `semicolon` is 4 and `io` is 2. The generator picks the opener, `whack()` word and closer that come closest to 12, then pads with ad-libs ("yo,", "skrrt,", "ayy,").
+- **Watch the verse spend the words.** The player shows every word `whack()` drew as a chip with a count (`goose ×6`). Words from the list have a dotted underline in the lyrics. When one is rapped, its chip flashes and counts down, and it's crossed out once it's used up.
 - **Each syllable has its own 16th note.** The last syllable, the rhyme, lands on the snare. In the player, every word lights up on its note, and a beat grid under each line fills in as it plays.
 
 ## Screenshot

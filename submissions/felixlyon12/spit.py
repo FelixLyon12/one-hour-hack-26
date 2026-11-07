@@ -304,6 +304,10 @@ def build_verse(words, file_words):
             budget, used = saved_budget, saved_used
 
     hook = hook_lines(hook_word, hook_count)
+    for l in lines + hook:  # tag every token that spends one of the whack() words
+        for t in l["tokens"]:
+            found = list_words_in(t["t"]) if t["kind"] != "adlib" else {}
+            t["list"] = next(iter(found), None)
     whack_rhymes = sum(l["whack_rhymes"] + l["whack"] for l in lines)
     for l in lines + hook:
         l.pop("need")

@@ -40,6 +40,15 @@
   .line.hook { font-style:italic; }
   .sec { color:var(--pink); font-size:14px; letter-spacing:3px; margin:18px 10px 4px; font-family:system-ui,sans-serif; }
   .winner { text-align:center; font-size:40px; color:var(--hot); margin:20px; }
+  #tray { max-width:900px; margin:6px auto 0; padding:0 16px; text-align:center; font-family:system-ui,sans-serif; }
+  #tray .lbl { color:var(--dim); font-size:13px; margin-bottom:6px; }
+  .chip { display:inline-block; margin:3px; padding:3px 9px; border-radius:999px; font-size:13px;
+          background:#ffffff10; border:1px solid #ffffff25; color:#d9d2f2; transition:all .15s; }
+  .chip b { color:var(--hot); margin-left:3px; }
+  .chip.flash { background:var(--hot); color:#1a1030; transform:scale(1.2); }
+  .chip.flash b { color:#1a1030; }
+  .chip.spent { opacity:.35; text-decoration:line-through; }
+  .line .w.lw { border-bottom:2px dotted #ffffff40; }
   #source { max-width:900px; margin:0 auto 40px; padding:0 16px; font-family:ui-monospace,monospace; font-size:12px;
             color:var(--dim); word-break:break-word; }
 </style>
@@ -53,6 +62,7 @@
   <button id="again" style="background:#3a2d5c;box-shadow:0 6px 0 #1d1530">🎲 NEW VERSE</button>
   <div id="speakers"><div class="spk"></div><div class="spk"></div></div>
 </header>
+<div id="tray"></div>
 <div id="lyrics"></div>
 <div id="source"></div>
 <script>
@@ -83,7 +93,8 @@ VERSES.forEach((v, vi) => {
     let s = 0;
     l.tokens.forEach(t => {
       const sp = document.createElement("span");
-      sp.className = "w " + t.kind;
+      sp.className = "w " + t.kind + (t.list ? " lw" : "");
+      if (t.list) sp.dataset.list = t.list;
       sp.textContent = t.t.trimEnd();
       sp.dataset.step = v.flow[s];        // the 16th note this word starts on
       s += t.syl;
@@ -102,9 +113,32 @@ VERSES.forEach((v, vi) => {
     lyrics.appendChild(w);
   }
 });
-document.getElementById("source").textContent =
-  "Raw whack() output: " + VERSES.map(v => `${v.mc}: ${v.words.join(" ")}`).join("  ///  ");
+renderTray(VERSES[0]);
 showStats(VERSES[0]);
+}
+
+// The words whack() drew, as chips that count down as the verse spends them.
+function renderTray(v) {
+  const counts = {};
+  v.words.forEach(w => counts[w] = (counts[w] || 0) + 1);
+  const tray = document.getElementById("tray");
+  tray.innerHTML = `<div class="lbl">whack() drew ${v.count} words · each lights up as the verse spends it</div>`;
+  Object.entries(counts).forEach(([w, n]) => {
+    const c = document.createElement("span");
+    c.className = "chip"; c.dataset.w = w; c.dataset.left = n;
+    c.innerHTML = `${w}<b>×${n}</b>`;
+    tray.appendChild(c);
+  });
+}
+function spend(word) {
+  const c = document.querySelector(`.chip[data-w="${word}"]`);
+  if (!c) return;
+  const left = Math.max(0, +c.dataset.left - 1);
+  c.dataset.left = left;
+  c.querySelector("b").textContent = "×" + left;
+  c.classList.add("flash");
+  setTimeout(() => c.classList.remove("flash"), 220);
+  if (!left) c.classList.add("spent");
 }
 
 function showStats(v) {
@@ -161,6 +195,7 @@ function stopPerformance() {
   if (master) { master.disconnect(); master = null; }
   if ("speechSynthesis" in window) speechSynthesis.cancel();
   document.querySelectorAll(".on, .hit").forEach(e => e.classList.remove("on", "hit"));
+  if (VERSES.length) renderTray(VERSES[0]);  // refill the chips
   document.getElementById("go").disabled = false;
 }
 function kick(t) {
@@ -256,7 +291,10 @@ async function perform() {
           const el = lineEls[vi][li], st = sub / scale;
           setTimeout(() => {
             if (run !== runId) return;
-            el.querySelectorAll(`.w[data-step="${st}"]`).forEach(w => w.classList.add("hit"));
+            el.querySelectorAll(`.w[data-step="${st}"]`).forEach(w => {
+              w.classList.add("hit");
+              if (w.dataset.list) spend(w.dataset.list);
+            });
             const cell = el.querySelectorAll(".grid i")[st];
             if (v.flow.includes(st)) cell.classList.add("hit");
           }, Math.max(0, (t - ctx.currentTime) * 1000));
