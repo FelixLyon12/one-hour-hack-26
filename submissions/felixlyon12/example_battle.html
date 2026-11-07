@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MC WHACK</title>
+<style>
+  :root { --bg:#0d0b14; --fg:#f4f0ff; --dim:#7d7596; --hot:#ffd23f; --pink:#ff3ea5; --cyan:#3ef0ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:radial-gradient(circle at 50% 0%, #2a1748, var(--bg) 70%); color:var(--fg);
+         font-family: "Arial Black", Impact, system-ui, sans-serif; min-height:100vh; overflow-x:hidden; }
+  header { text-align:center; padding:24px 16px 8px; }
+  h1 { margin:0; font-size:clamp(40px,9vw,88px); letter-spacing:-2px; color:var(--hot);
+       text-shadow:4px 4px 0 var(--pink), 8px 8px 0 #000; transform:rotate(-2deg); }
+  #mc { font-size:22px; color:var(--cyan); margin-top:10px; min-height:28px; }
+  .stats { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:14px 0; font-family:system-ui,sans-serif; }
+  .stat { background:#ffffff12; border:1px solid #ffffff22; padding:6px 12px; border-radius:999px; font-size:14px; }
+  .stat b { color:var(--hot); }
+  button { font:inherit; font-size:22px; padding:14px 34px; border:0; border-radius:14px; cursor:pointer;
+           background:var(--pink); color:#fff; box-shadow:0 6px 0 #8a1458; margin:6px; }
+  button:active { transform:translateY(4px); box-shadow:0 2px 0 #8a1458; }
+  #speakers { display:flex; justify-content:center; gap:40px; margin:10px 0; }
+  .spk { width:70px; height:70px; border-radius:50%; background:radial-gradient(circle,#333 30%,#111 31%,#222 60%,#000 61%);
+         border:4px solid #444; transition:transform .06s; }
+  .spk.thump { transform:scale(1.18); border-color:var(--hot); }
+  #lyrics { max-width:900px; margin:0 auto; padding:10px 16px 60px; }
+  .line { font-size:clamp(18px,3.4vw,30px); padding:6px 10px; border-radius:8px; color:var(--dim);
+          transition:all .15s; }
+  .line .end { color:#b9a8e6; }
+  .line.on { color:var(--fg); background:#ffffff10; transform:scale(1.03); }
+  .line.on .end { color:var(--hot); text-shadow:0 0 18px var(--hot); }
+  .line.hook { font-style:italic; }
+  .sec { color:var(--pink); font-size:14px; letter-spacing:3px; margin:18px 10px 4px; font-family:system-ui,sans-serif; }
+  .winner { text-align:center; font-size:40px; color:var(--hot); margin:20px; }
+  #source { max-width:900px; margin:0 auto 40px; padding:0 16px; font-family:ui-monospace,monospace; font-size:12px;
+            color:var(--dim); word-break:break-word; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MC WHACK</h1>
+  <div id="mc"></div>
+  <div class="stats" id="stats"></div>
+  <button id="go">▶ DROP THE BEAT</button>
+  <div id="speakers"><div class="spk"></div><div class="spk"></div></div>
+</header>
+<div id="lyrics"></div>
+<div id="source"></div>
+<script>
+const VERSES = [{"words": ["rubber", "hack", "overflow", "honk", "bloomberg", "semicolon", "io", "goose", "duck", "wifi", "io", "demo", "capital", "bug", "conflict", "duck", "demo", "howard", "segfault", "deploy", "segfault", "marshall", "stack", "howard", "capital", "midnight", "warwick", "warwick", "wace", "deploy", "deploy", "quack", "howard", "merge", "wifi", "stack", "demo", "stack", "incident", "netcraft", "coffee", "marshall", "marshall", "prize", "quack", "semicolon", "bug", "deploy", "demo", "pizza", "capital", "brevan", "duck", "marshall", "incident", "duck", "sleep", "one", "oculus", "warwick", "bloomberg", "duck", "io", "deploy"], "count": 64, "bars": 12, "bpm": 134, "mood": "FLEXING", "hook": "duck", "hook_count": 5, "lines": [{"pre": "They call me MC HACK, I'm the king of the ", "end": "rubber", "family": "ubber", "whack": true}, {"pre": "Hands up for the honk, hands up for the ", "end": "lover", "family": "ubber", "whack": false}, {"pre": "I don't chase semicolon, I just catch the ", "end": "hack", "family": "ack", "whack": true}, {"pre": "Diamonds on my goose, gold chain made of ", "end": "stack", "family": "ack", "whack": true}, {"pre": "Got a wifi in my io, call me ", "end": "overflow", "family": "o", "whack": true}, {"pre": "Pull up to the demo with a capital and a ", "end": "io", "family": "o", "whack": true}, {"pre": "BUG in the bag and a conflict on my ", "end": "honk", "family": "onk", "whack": true}, {"pre": "Sponsored by duck, yeah I'm flexing on ", "end": "plonk", "family": "onk", "whack": false}, {"pre": "Ten howards deep in a segfault, straight ", "end": "bloomberg", "family": "erg", "whack": true}, {"pre": "My deploy so cold it's a ", "end": "Nuremberg", "family": "erg", "whack": false}, {"pre": "They call me MC MARSHALL, I'm the king of the ", "end": "semicolon", "family": "olon", "whack": true}, {"pre": "Hands up for the howard, hands up for the ", "end": "stolen", "family": "olon", "whack": false}, {"pre": "DUCK DUCK DUCK, ", "end": "deploy", "family": "hook", "whack": true}, {"pre": "Everybody say DUCK! (DUCK!) ", "end": "duck", "family": "hook", "whack": true}, {"pre": "DUCK DUCK DUCK, ", "end": "deploy", "family": "hook", "whack": true}, {"pre": "Everybody say DUCK! (DUCK!) ", "end": "duck", "family": "hook", "whack": true}], "true_rhymes": 2, "score": 58, "mc": "MC QUACKSTAR", "winner": true}, {"words": ["pointer"], "count": 1, "bars": 4, "bpm": 71, "mood": "CRYING AT 3AM", "hook": "pointer", "hook_count": 1, "lines": [{"pre": "Tears on my pointer, it's a pointer ", "end": "pointer", "family": "ointer", "whack": true}, {"pre": "Got a pointer in my pointer, call me ", "end": "anointer", "family": "ointer", "whack": false}, {"pre": "Pass me the pointer and the pointer, it's ", "end": "pointer", "family": "ointer", "whack": true}, {"pre": "POINTER at 3AM, still chasing that ", "end": "disappointer", "family": "ointer", "whack": false}, {"pre": "POINTER POINTER POINTER, ", "end": "pointer", "family": "hook", "whack": true}, {"pre": "Everybody say POINTER! (POINTER!) ", "end": "pointer", "family": "hook", "whack": true}, {"pre": "POINTER POINTER POINTER, ", "end": "pointer", "family": "hook", "whack": true}, {"pre": "Everybody say POINTER! (POINTER!) ", "end": "pointer", "family": "hook", "whack": true}], "true_rhymes": 0, "score": 2, "mc": "LIL HONK", "winner": false}];
+
+const lyrics = document.getElementById("lyrics");
+const lineEls = [];   // [verseIndex][lineIndex]
+VERSES.forEach((v, vi) => {
+  const sec = document.createElement("div");
+  sec.className = "sec";
+  sec.textContent = `🎤 ${v.mc} · ${v.bpm} BPM · ${v.mood}`;
+  lyrics.appendChild(sec);
+  lineEls[vi] = [];
+  v.lines.forEach((l, li) => {
+    if (li === v.bars || li === v.bars + 2) {
+      const h = document.createElement("div"); h.className = "sec"; h.textContent = "HOOK"; lyrics.appendChild(h);
+    }
+    const d = document.createElement("div");
+    d.className = "line" + (l.family === "hook" ? " hook" : "");
+    d.innerHTML = `${l.pre}<span class="end">${l.end}</span>`;
+    lyrics.appendChild(d);
+    lineEls[vi].push(d);
+  });
+  if (v.winner) {
+    const w = document.createElement("div"); w.className = "winner"; w.textContent = `🏆 ${v.mc} WINS`;
+    lyrics.appendChild(w);
+  }
+});
+document.getElementById("source").textContent =
+  "Raw whack() output: " + VERSES.map(v => `${v.mc}: ${v.words.join(" ")}`).join("  ///  ");
+
+function showStats(v) {
+  document.getElementById("mc").textContent = `now on the mic: ${v.mc}`;
+  document.getElementById("stats").innerHTML =
+    `<span class="stat">whack() gave <b>${v.count}</b> words</span>` +
+    `<span class="stat"><b>${v.bars}</b> bars</span><span class="stat"><b>${v.bpm}</b> BPM</span>` +
+    `<span class="stat">mood <b>${v.mood}</b></span>` +
+    `<span class="stat">hook <b>${v.hook.toUpperCase()}</b> ×${v.hook_count}</span>`;
+}
+showStats(VERSES[0]);
+
+// ---- the beat: a tiny synth drum machine ----
+let ctx;
+function kick(t) {
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.25);
+  g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+  o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.3);
+}
+function noise(t, len, freq, vol) {
+  const buf = ctx.createBuffer(1, ctx.sampleRate * len, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+  s.buffer = buf; f.type = "highpass"; f.frequency.value = freq;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + len);
+  s.connect(f).connect(g).connect(ctx.destination); s.start(t);
+}
+const KICK = [0, 3, 8, 10], SNARE = [4, 12];
+function thump() {
+  document.querySelectorAll(".spk").forEach(s => { s.classList.add("thump"); setTimeout(() => s.classList.remove("thump"), 90); });
+}
+
+// ---- the voice ----
+function rap(text, seconds) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  const words = text.split(/\s+/).length;
+  u.rate = Math.min(2.2, Math.max(0.9, words / (2.6 * seconds)));
+  u.pitch = 0.8;
+  speechSynthesis.speak(u);
+}
+
+async function perform() {
+  ctx = ctx || new AudioContext();
+  await ctx.resume();
+  document.getElementById("go").disabled = true;
+  for (let vi = 0; vi < VERSES.length; vi++) {
+    const v = VERSES[vi];
+    showStats(v);
+    const step = 60 / v.bpm / 4;                 // a 16th note
+    let barSec = step * 16;
+    const stepsPerLine = barSec < 2.4 ? 32 : 16; // fast beats get two bars per line
+    const total = (v.lines.length + 1) * stepsPerLine; // +1 bar of intro
+    let start = ctx.currentTime + 0.1;
+    await new Promise(done => {
+      let n = 0;
+      const tick = () => {
+        // schedule 16ths slightly ahead, and fire visuals on time
+        const t = start + n * step;
+        if (KICK.includes(n % 16)) { kick(t); setTimeout(thump, (t - ctx.currentTime) * 1000); }
+        if (SNARE.includes(n % 16)) noise(t, 0.18, 1200, 0.6);
+        if (n % 2 === 0) noise(t, 0.04, 7000, 0.25);
+        const li = Math.floor(n / stepsPerLine) - 1;
+        if (n % stepsPerLine === 0 && li >= 0 && li < v.lines.length) {
+          setTimeout(() => {
+            lineEls[vi].forEach(e => e.classList.remove("on"));
+            const el = lineEls[vi][li];
+            el.classList.add("on");
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            rap(v.lines[li].pre + v.lines[li].end, stepsPerLine * step);
+          }, Math.max(0, (t - ctx.currentTime) * 1000));
+        }
+        n++;
+        if (n >= total) { setTimeout(done, stepsPerLine * step * 1000); return; }
+        setTimeout(tick, Math.max(0, (start + n * step - ctx.currentTime - 0.05) * 1000));
+      };
+      tick();
+    });
+    lineEls[vi].forEach(e => e.classList.remove("on"));
+  }
+  document.getElementById("go").disabled = false;
+  document.getElementById("mc").textContent = "🎤 mic drop. run spit.py again for a new verse.";
+}
+document.getElementById("go").onclick = perform;
+</script>
+</body>
+</html>
