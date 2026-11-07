@@ -364,16 +364,21 @@ def write_player(verses, out="verse.html"):
     print(f"\n🔊 Open {Path(out).resolve()} in a browser and press DROP THE BEAT.\n")
 
 
+def battle():
+    """Two MCs, two whack() calls, one winner."""
+    a, b = spit("MC QUACKSTAR"), spit("LIL HONK")
+    a["winner"], b["winner"] = a["score"] >= b["score"], a["score"] < b["score"]
+    return [a, b]
+
+
 def main():
     if "--battle" in sys.argv:
-        verses = [spit("MC QUACKSTAR"), spit("LIL HONK")]
+        verses = battle()
         for v in verses:
             show(v)
         a, b = verses
-        winner = a if a["score"] >= b["score"] else b
+        winner = a if a["winner"] else b
         print(f"\n🏆 \033[1;93m{winner['mc']} WINS\033[0m  ({a['score']} vs {b['score']})")
-        for v in verses:
-            v["winner"] = v is winner
     else:
         verses = [spit("MC WHACK")]
         show(verses[0])

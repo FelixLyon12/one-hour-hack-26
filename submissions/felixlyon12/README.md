@@ -11,7 +11,9 @@ python3 spit.py            # one verse
 python3 spit.py --battle   # two MCs, two whack() calls, one winner
 ```
 
-Each run prints the verse to the terminal, with the rhyming words colour-coded, and writes `verse.html`. Open that page in a browser and press **DROP THE BEAT**. No installs, no API keys, just Python 3 and a browser. To see the player without running anything, open `example_battle.html`.
+Each run prints the verse to the terminal, with the rhyming words colour-coded, and writes `verse.html`. Open that page in a browser and press **DROP THE BEAT**. No installs, no API keys, just Python 3 and a browser.
+
+**No Python? Run it in your browser:** [open the live player](https://raw.githack.com/felixlyon12/one-hour-hack-26/claude/wizardly-wozniak-arq1va/submissions/felixlyon12/player.html). Opening `player.html` on its own loads [Pyodide](https://pyodide.org) and runs the real `spit.py` and the unchanged `whack.py` in the browser (`whack()` writes its `whack` file to Pyodide's in-memory file system). Every refresh and every 🎲 NEW BATTLE is a fresh `whack()` call. `example_battle.html` is one saved battle.
 
 ## How `whack()` writes the song
 

@@ -50,16 +50,20 @@
   <div id="mc"></div>
   <div class="stats" id="stats"></div>
   <button id="go">▶ DROP THE BEAT</button>
+  <button id="again" style="background:#3a2d5c;box-shadow:0 6px 0 #1d1530">🎲 NEW BATTLE</button>
   <div id="speakers"><div class="spk"></div><div class="spk"></div></div>
 </header>
 <div id="lyrics"></div>
 <div id="source"></div>
 <script>
-const VERSES = /*VERSES*/[];
+let VERSES = /*VERSES*/[];
 
 const lyrics = document.getElementById("lyrics");
-const lineEls = [];   // [verseIndex][lineIndex]
-const famHue = {};
+let lineEls = [];   // [verseIndex][lineIndex]
+let famHue = {};
+function render() {
+lyrics.innerHTML = "";
+lineEls = []; famHue = {};
 VERSES.forEach((v, vi) => {
   const sec = document.createElement("div");
   sec.className = "sec";
@@ -98,6 +102,8 @@ VERSES.forEach((v, vi) => {
 });
 document.getElementById("source").textContent =
   "Raw whack() output: " + VERSES.map(v => `${v.mc}: ${v.words.join(" ")}`).join("  ///  ");
+showStats(VERSES[0]);
+}
 
 function showStats(v) {
   document.getElementById("mc").textContent = `now on the mic: ${v.mc}`;
@@ -107,7 +113,41 @@ function showStats(v) {
     `<span class="stat">mood <b>${v.mood}</b></span>` +
     `<span class="stat">hook <b>${v.hook.toUpperCase()}</b> ×${v.hook_count}</span>`;
 }
-showStats(VERSES[0]);
+// No baked-in verses? Then run the real spit.py + whack.py right here in the browser (Pyodide),
+// so every page load (and every NEW BATTLE) is a fresh whack() call.
+let py;
+async function liveBattle() {
+  const go = document.getElementById("go"), again = document.getElementById("again");
+  go.disabled = again.disabled = true;
+  document.getElementById("mc").textContent = "calling whack()…";
+  if (!py) {
+    document.getElementById("mc").textContent = "warming up the mic (loading Python)…";
+    await new Promise((ok, fail) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
+      s.onload = ok; s.onerror = fail; document.head.appendChild(s);
+    });
+    py = await loadPyodide();
+    for (const f of ["whack.py", "spit.py"]) {
+      py.FS.writeFile(f, await (await fetch(f, { cache: "no-store" })).text());
+    }
+    py.runPython("import sys; sys.path.insert(0, '.')");
+  }
+  VERSES = JSON.parse(py.runPython("import json, spit; json.dumps(spit.battle())"));
+  render();
+  go.disabled = again.disabled = false;
+}
+
+if (VERSES.length) {
+  render();
+  document.getElementById("again").style.display = "none";
+} else {
+  liveBattle().catch(e => {
+    document.getElementById("mc").textContent = "couldn't load Python here: run python3 spit.py instead";
+    console.error(e);
+  });
+}
+document.getElementById("again").onclick = () => liveBattle();
 
 // ---- the beat: a tiny synth drum machine ----
 let ctx;
@@ -191,7 +231,7 @@ async function perform() {
   }
   document.querySelectorAll(".hit").forEach(e => e.classList.remove("hit"));
   document.getElementById("go").disabled = false;
-  document.getElementById("mc").textContent = "🎤 mic drop. run spit.py again for a new verse.";
+  document.getElementById("mc").textContent = "🎤 mic drop. hit NEW BATTLE for a fresh whack().";
 }
 document.getElementById("go").onclick = perform;
 </script>
