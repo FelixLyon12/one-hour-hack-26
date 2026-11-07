@@ -26,9 +26,17 @@
   #lyrics { max-width:900px; margin:0 auto; padding:10px 16px 60px; }
   .line { font-size:clamp(18px,3.4vw,30px); padding:6px 10px; border-radius:8px; color:var(--dim);
           transition:all .15s; }
-  .line .end { color:#b9a8e6; }
-  .line.on { color:var(--fg); background:#ffffff10; transform:scale(1.03); }
-  .line.on .end { color:var(--hot); text-shadow:0 0 18px var(--hot); }
+  .line .w { transition:color .05s, text-shadow .05s; }
+  .line .rhyme, .line .end { color:var(--fam); opacity:.75; }
+  .line .end { text-decoration:underline; text-underline-offset:5px; }
+  .line .adlib { font-style:italic; opacity:.6; }
+  .line.on { color:#cfc6ea; background:#ffffff10; transform:scale(1.03); }
+  .line.on .rhyme, .line.on .end { opacity:1; }
+  .line .w.hit { color:#fff; text-shadow:0 0 14px #fff; }
+  .line .rhyme.hit, .line .end.hit { color:var(--fam); text-shadow:0 0 22px var(--fam); }
+  .grid { display:flex; gap:3px; margin:2px 10px 0; }
+  .grid i { width:10px; height:4px; border-radius:2px; background:#ffffff18; }
+  .grid i.q { background:#ffffff35; } .grid i.hit { background:var(--hot); }
   .line.hook { font-style:italic; }
   .sec { color:var(--pink); font-size:14px; letter-spacing:3px; margin:18px 10px 4px; font-family:system-ui,sans-serif; }
   .winner { text-align:center; font-size:40px; color:var(--hot); margin:20px; }
@@ -47,10 +55,11 @@
 <div id="lyrics"></div>
 <div id="source"></div>
 <script>
-const VERSES = [{"words": ["rubber", "hack", "overflow", "honk", "bloomberg", "semicolon", "io", "goose", "duck", "wifi", "io", "demo", "capital", "bug", "conflict", "duck", "demo", "howard", "segfault", "deploy", "segfault", "marshall", "stack", "howard", "capital", "midnight", "warwick", "warwick", "wace", "deploy", "deploy", "quack", "howard", "merge", "wifi", "stack", "demo", "stack", "incident", "netcraft", "coffee", "marshall", "marshall", "prize", "quack", "semicolon", "bug", "deploy", "demo", "pizza", "capital", "brevan", "duck", "marshall", "incident", "duck", "sleep", "one", "oculus", "warwick", "bloomberg", "duck", "io", "deploy"], "count": 64, "bars": 12, "bpm": 134, "mood": "FLEXING", "hook": "duck", "hook_count": 5, "lines": [{"pre": "They call me MC HACK, I'm the king of the ", "end": "rubber", "family": "ubber", "whack": true}, {"pre": "Hands up for the honk, hands up for the ", "end": "lover", "family": "ubber", "whack": false}, {"pre": "I don't chase semicolon, I just catch the ", "end": "hack", "family": "ack", "whack": true}, {"pre": "Diamonds on my goose, gold chain made of ", "end": "stack", "family": "ack", "whack": true}, {"pre": "Got a wifi in my io, call me ", "end": "overflow", "family": "o", "whack": true}, {"pre": "Pull up to the demo with a capital and a ", "end": "io", "family": "o", "whack": true}, {"pre": "BUG in the bag and a conflict on my ", "end": "honk", "family": "onk", "whack": true}, {"pre": "Sponsored by duck, yeah I'm flexing on ", "end": "plonk", "family": "onk", "whack": false}, {"pre": "Ten howards deep in a segfault, straight ", "end": "bloomberg", "family": "erg", "whack": true}, {"pre": "My deploy so cold it's a ", "end": "Nuremberg", "family": "erg", "whack": false}, {"pre": "They call me MC MARSHALL, I'm the king of the ", "end": "semicolon", "family": "olon", "whack": true}, {"pre": "Hands up for the howard, hands up for the ", "end": "stolen", "family": "olon", "whack": false}, {"pre": "DUCK DUCK DUCK, ", "end": "deploy", "family": "hook", "whack": true}, {"pre": "Everybody say DUCK! (DUCK!) ", "end": "duck", "family": "hook", "whack": true}, {"pre": "DUCK DUCK DUCK, ", "end": "deploy", "family": "hook", "whack": true}, {"pre": "Everybody say DUCK! (DUCK!) ", "end": "duck", "family": "hook", "whack": true}], "true_rhymes": 2, "score": 58, "mc": "MC QUACKSTAR", "winner": true}, {"words": ["pointer"], "count": 1, "bars": 4, "bpm": 71, "mood": "CRYING AT 3AM", "hook": "pointer", "hook_count": 1, "lines": [{"pre": "Tears on my pointer, it's a pointer ", "end": "pointer", "family": "ointer", "whack": true}, {"pre": "Got a pointer in my pointer, call me ", "end": "anointer", "family": "ointer", "whack": false}, {"pre": "Pass me the pointer and the pointer, it's ", "end": "pointer", "family": "ointer", "whack": true}, {"pre": "POINTER at 3AM, still chasing that ", "end": "disappointer", "family": "ointer", "whack": false}, {"pre": "POINTER POINTER POINTER, ", "end": "pointer", "family": "hook", "whack": true}, {"pre": "Everybody say POINTER! (POINTER!) ", "end": "pointer", "family": "hook", "whack": true}, {"pre": "POINTER POINTER POINTER, ", "end": "pointer", "family": "hook", "whack": true}, {"pre": "Everybody say POINTER! (POINTER!) ", "end": "pointer", "family": "hook", "whack": true}], "true_rhymes": 0, "score": 2, "mc": "LIL HONK", "winner": false}];
+const VERSES = [{"words": ["pitch", "io", "compsoc", "commit", "pizza", "whack", "sleep", "sleep", "incident", "push", "goose", "pitch", "null", "coffee", "deploy"], "count": 15, "bars": 4, "bpm": 85, "mood": "CRYING AT 3AM", "hook": "pitch", "hook_count": 2, "lines": [{"tokens": [{"t": "My ", "syl": 1, "kind": "text", "fam": null}, {"t": "incident", "syl": 3, "kind": "word", "fam": null}, {"t": " hit a ", "syl": 2, "kind": "text", "fam": null}, {"t": "rich", "syl": 1, "kind": "rhyme", "fam": "itch"}, {"t": ", now my life is ", "syl": 4, "kind": "text", "fam": null}, {"t": "pitch", "syl": 1, "kind": "end", "fam": "itch"}], "end": "pitch", "family": "itch", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Yeah,", "syl": 1, "kind": "adlib", "fam": null}, {"t": "mama said no ", "syl": 4, "kind": "text", "fam": null}, {"t": "pitch", "syl": 1, "kind": "rhyme", "fam": "itch"}, {"t": ", so I ran it on ", "syl": 5, "kind": "text", "fam": null}, {"t": "rich", "syl": 1, "kind": "end", "fam": "itch"}], "end": "rich", "family": "itch", "whack": false, "whack_rhymes": 1}, {"tokens": [{"t": "DEMO", "syl": 2, "kind": "rhyme", "fam": "o"}, {"t": " at three AM, still chasing that ", "syl": 8, "kind": "text", "fam": null}, {"t": "io", "syl": 2, "kind": "end", "fam": "o"}], "end": "io", "family": "o", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Rubber duck, tell me why my ", "syl": 7, "kind": "text", "fam": null}, {"t": "overflow", "syl": 3, "kind": "rhyme", "fam": "o"}, {"t": " is ", "syl": 1, "kind": "text", "fam": null}, {"t": "go", "syl": 1, "kind": "end", "fam": "o"}], "end": "go", "family": "o", "whack": false, "whack_rhymes": 0}, {"tokens": [{"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}], "end": "pitch", "family": "hook", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Everybody say ", "syl": 5, "kind": "text", "fam": null}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}], "end": "pitch", "family": "hook", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "SLEEP! ", "syl": 1, "kind": "end", "fam": "hook"}], "end": "pitch", "family": "hook", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Everybody say ", "syl": 5, "kind": "text", "fam": null}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "PITCH! ", "syl": 1, "kind": "end", "fam": "hook"}], "end": "pitch", "family": "hook", "whack": true, "whack_rhymes": 0}], "flow": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], "true_rhymes": 1, "score": 25, "mc": "MC QUACKSTAR", "winner": false}, {"words": ["stack", "marshall", "netcraft", "howard", "compsoc", "capital", "honk", "feature", "io", "bug", "push", "pointer", "marshall", "rubber", "one", "bug", "honk", "compsoc", "segfault", "midnight", "netcraft", "null", "one", "goose", "marshall", "semicolon", "semicolon", "hack", "honk", "overflow", "coffee", "null", "conflict", "whack", "wifi", "goose", "whack", "coffee", "goose", "duck", "duck", "prize", "bloomberg", "commit", "incident", "conflict"], "count": 46, "bars": 10, "bpm": 116, "mood": "CRYING AT 3AM", "hook": "marshall", "hook_count": 3, "lines": [{"tokens": [{"t": "My ", "syl": 1, "kind": "text", "fam": null}, {"t": "capital", "syl": 3, "kind": "word", "fam": null}, {"t": " hit a ", "syl": 2, "kind": "text", "fam": null}, {"t": "whack", "syl": 1, "kind": "rhyme", "fam": "ack"}, {"t": ", now my life is ", "syl": 4, "kind": "text", "fam": null}, {"t": "stack", "syl": 1, "kind": "end", "fam": "ack"}], "end": "stack", "family": "ack", "whack": true, "whack_rhymes": 1}, {"tokens": [{"t": "Mama said no ", "syl": 4, "kind": "text", "fam": null}, {"t": "attack", "syl": 2, "kind": "rhyme", "fam": "ack"}, {"t": ", so I ran it on ", "syl": 5, "kind": "text", "fam": null}, {"t": "hack", "syl": 1, "kind": "end", "fam": "ack"}], "end": "hack", "family": "ack", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Pass me the ", "syl": 3, "kind": "text", "fam": null}, {"t": "martial", "syl": 2, "kind": "rhyme", "fam": "artial"}, {"t": " and the ", "syl": 2, "kind": "text", "fam": null}, {"t": "howard", "syl": 2, "kind": "word", "fam": null}, {"t": ", it's ", "syl": 1, "kind": "text", "fam": null}, {"t": "marshall", "syl": 2, "kind": "end", "fam": "artial"}], "end": "marshall", "family": "artial", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Rubber duck, tell me why my ", "syl": 7, "kind": "text", "fam": null}, {"t": "marshall", "syl": 2, "kind": "rhyme", "fam": "artial"}, {"t": " is ", "syl": 1, "kind": "text", "fam": null}, {"t": "partial", "syl": 2, "kind": "end", "fam": "artial"}], "end": "partial", "family": "artial", "whack": false, "whack_rhymes": 1}, {"tokens": [{"t": "LAUGHED", "syl": 2, "kind": "rhyme", "fam": "aft"}, {"t": " at three AM, still chasing that ", "syl": 8, "kind": "text", "fam": null}, {"t": "netcraft", "syl": 2, "kind": "end", "fam": "aft"}], "end": "netcraft", "family": "aft", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Huh,", "syl": 1, "kind": "adlib", "fam": null}, {"t": "tears on my ", "syl": 3, "kind": "text", "fam": null}, {"t": "netcraft", "syl": 2, "kind": "rhyme", "fam": "aft"}, {"t": ", it's a ", "syl": 2, "kind": "text", "fam": null}, {"t": "feature", "syl": 2, "kind": "word", "fam": null}, {"t": " ", "syl": 0, "kind": "text", "fam": null}, {"t": "laughed", "syl": 2, "kind": "end", "fam": "aft"}], "end": "laughed", "family": "aft", "whack": false, "whack_rhymes": 1}, {"tokens": [{"t": "POWERED", "syl": 3, "kind": "rhyme", "fam": "oward"}, {"t": ", ", "syl": 0, "kind": "text", "fam": null}, {"t": "SHOWERED", "syl": 3, "kind": "rhyme", "fam": "oward"}, {"t": ", my ", "syl": 1, "kind": "text", "fam": null}, {"t": "netcraft", "syl": 2, "kind": "word", "fam": null}, {"t": " is ", "syl": 1, "kind": "text", "fam": null}, {"t": "howard", "syl": 2, "kind": "end", "fam": "oward"}], "end": "howard", "family": "oward", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Every time I ", "syl": 4, "kind": "text", "fam": null}, {"t": "howard", "syl": 2, "kind": "rhyme", "fam": "oward"}, {"t": ", I get a ", "syl": 3, "kind": "text", "fam": null}, {"t": "showered", "syl": 3, "kind": "end", "fam": "oward"}], "end": "showered", "family": "oward", "whack": false, "whack_rhymes": 1}, {"tokens": [{"t": "Huh,", "syl": 1, "kind": "adlib", "fam": null}, {"t": "yeah,", "syl": 1, "kind": "adlib", "fam": null}, {"t": "mama said no ", "syl": 4, "kind": "text", "fam": null}, {"t": "rock", "syl": 1, "kind": "rhyme", "fam": "ock"}, {"t": ", so I ran it on ", "syl": 5, "kind": "text", "fam": null}, {"t": "compsoc", "syl": 2, "kind": "end", "fam": "ock"}], "end": "compsoc", "family": "ock", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Yeah,", "syl": 1, "kind": "adlib", "fam": null}, {"t": "yeah,", "syl": 1, "kind": "adlib", "fam": null}, {"t": "my ", "syl": 1, "kind": "text", "fam": null}, {"t": "pointer", "syl": 2, "kind": "word", "fam": null}, {"t": " hit a ", "syl": 2, "kind": "text", "fam": null}, {"t": "compsoc", "syl": 2, "kind": "rhyme", "fam": "ock"}, {"t": ", now my life is ", "syl": 4, "kind": "text", "fam": null}, {"t": "rock", "syl": 1, "kind": "end", "fam": "ock"}], "end": "rock", "family": "ock", "whack": false, "whack_rhymes": 1}, {"tokens": [{"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}], "end": "marshall", "family": "hook", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Everybody say ", "syl": 5, "kind": "text", "fam": null}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "yeah!", "syl": 1, "kind": "adlib", "fam": null}], "end": "marshall", "family": "hook", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "HONK! ", "syl": 1, "kind": "end", "fam": "hook"}], "end": "marshall", "family": "hook", "whack": true, "whack_rhymes": 0}, {"tokens": [{"t": "Everybody say ", "syl": 5, "kind": "text", "fam": null}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "MARSHALL! ", "syl": 2, "kind": "end", "fam": "hook"}, {"t": "yeah!", "syl": 1, "kind": "adlib", "fam": null}], "end": "marshall", "family": "hook", "whack": true, "whack_rhymes": 0}], "flow": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], "true_rhymes": 6, "score": 93, "mc": "LIL HONK", "winner": true}];
 
 const lyrics = document.getElementById("lyrics");
 const lineEls = [];   // [verseIndex][lineIndex]
+const famHue = {};
 VERSES.forEach((v, vi) => {
   const sec = document.createElement("div");
   sec.className = "sec";
@@ -63,7 +72,22 @@ VERSES.forEach((v, vi) => {
     }
     const d = document.createElement("div");
     d.className = "line" + (l.family === "hook" ? " hook" : "");
-    d.innerHTML = `${l.pre}<span class="end">${l.end}</span>`;
+    const hue = l.family === "hook" ? 48 : (famHue[l.family] ??= (Object.keys(famHue).length * 67 + 300) % 360);
+    d.style.setProperty("--fam", `hsl(${hue} 95% 65%)`);
+    let s = 0;
+    l.tokens.forEach(t => {
+      const sp = document.createElement("span");
+      sp.className = "w " + t.kind;
+      sp.textContent = t.t.trimEnd();
+      sp.dataset.step = v.flow[s];        // the 16th note this word starts on
+      s += t.syl;
+      d.appendChild(sp);
+      const gap = t.t.slice(t.t.trimEnd().length) || (t.kind === "adlib" ? " " : "");
+      if (gap) d.appendChild(document.createTextNode(gap));
+    });
+    const g = document.createElement("div"); g.className = "grid";
+    for (let k = 0; k < 16; k++) { const c = document.createElement("i"); if (k % 4 === 0) c.className = "q"; g.appendChild(c); }
+    d.appendChild(g);
     lyrics.appendChild(d);
     lineEls[vi].push(d);
   });
@@ -112,8 +136,8 @@ function rap(text, seconds) {
   if (!("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  const words = text.split(/\s+/).length;
-  u.rate = Math.min(2.2, Math.max(0.9, words / (2.6 * seconds)));
+  // every line is 12 syllables; a voice at rate 1 says about 4 syllables a second
+  u.rate = Math.min(3, Math.max(0.8, 12 / (4 * seconds)));
   u.pitch = 0.8;
   speechSynthesis.speak(u);
 }
@@ -139,13 +163,22 @@ async function perform() {
         if (SNARE.includes(n % 16)) noise(t, 0.18, 1200, 0.6);
         if (n % 2 === 0) noise(t, 0.04, 7000, 0.25);
         const li = Math.floor(n / stepsPerLine) - 1;
+        const scale = stepsPerLine / 16, sub = n % stepsPerLine;
+        if (li >= 0 && li < v.lines.length && sub % scale === 0) {
+          const el = lineEls[vi][li], st = sub / scale;
+          setTimeout(() => {
+            el.querySelectorAll(`.w[data-step="${st}"]`).forEach(w => w.classList.add("hit"));
+            const cell = el.querySelectorAll(".grid i")[st];
+            if (v.flow.includes(st)) cell.classList.add("hit");
+          }, Math.max(0, (t - ctx.currentTime) * 1000));
+        }
         if (n % stepsPerLine === 0 && li >= 0 && li < v.lines.length) {
           setTimeout(() => {
             lineEls[vi].forEach(e => e.classList.remove("on"));
             const el = lineEls[vi][li];
             el.classList.add("on");
             el.scrollIntoView({ behavior: "smooth", block: "center" });
-            rap(v.lines[li].pre + v.lines[li].end, stepsPerLine * step);
+            rap(v.lines[li].tokens.map(t => t.t).join(" "), stepsPerLine * step * 13 / 16);
           }, Math.max(0, (t - ctx.currentTime) * 1000));
         }
         n++;
@@ -156,6 +189,7 @@ async function perform() {
     });
     lineEls[vi].forEach(e => e.classList.remove("on"));
   }
+  document.querySelectorAll(".hit").forEach(e => e.classList.remove("hit"));
   document.getElementById("go").disabled = false;
   document.getElementById("mc").textContent = "🎤 mic drop. run spit.py again for a new verse.";
 }

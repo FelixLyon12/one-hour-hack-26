@@ -26,9 +26,17 @@
   #lyrics { max-width:900px; margin:0 auto; padding:10px 16px 60px; }
   .line { font-size:clamp(18px,3.4vw,30px); padding:6px 10px; border-radius:8px; color:var(--dim);
           transition:all .15s; }
-  .line .end { color:#b9a8e6; }
-  .line.on { color:var(--fg); background:#ffffff10; transform:scale(1.03); }
-  .line.on .end { color:var(--hot); text-shadow:0 0 18px var(--hot); }
+  .line .w { transition:color .05s, text-shadow .05s; }
+  .line .rhyme, .line .end { color:var(--fam); opacity:.75; }
+  .line .end { text-decoration:underline; text-underline-offset:5px; }
+  .line .adlib { font-style:italic; opacity:.6; }
+  .line.on { color:#cfc6ea; background:#ffffff10; transform:scale(1.03); }
+  .line.on .rhyme, .line.on .end { opacity:1; }
+  .line .w.hit { color:#fff; text-shadow:0 0 14px #fff; }
+  .line .rhyme.hit, .line .end.hit { color:var(--fam); text-shadow:0 0 22px var(--fam); }
+  .grid { display:flex; gap:3px; margin:2px 10px 0; }
+  .grid i { width:10px; height:4px; border-radius:2px; background:#ffffff18; }
+  .grid i.q { background:#ffffff35; } .grid i.hit { background:var(--hot); }
   .line.hook { font-style:italic; }
   .sec { color:var(--pink); font-size:14px; letter-spacing:3px; margin:18px 10px 4px; font-family:system-ui,sans-serif; }
   .winner { text-align:center; font-size:40px; color:var(--hot); margin:20px; }
@@ -51,6 +59,7 @@ const VERSES = /*VERSES*/[];
 
 const lyrics = document.getElementById("lyrics");
 const lineEls = [];   // [verseIndex][lineIndex]
+const famHue = {};
 VERSES.forEach((v, vi) => {
   const sec = document.createElement("div");
   sec.className = "sec";
@@ -63,7 +72,22 @@ VERSES.forEach((v, vi) => {
     }
     const d = document.createElement("div");
     d.className = "line" + (l.family === "hook" ? " hook" : "");
-    d.innerHTML = `${l.pre}<span class="end">${l.end}</span>`;
+    const hue = l.family === "hook" ? 48 : (famHue[l.family] ??= (Object.keys(famHue).length * 67 + 300) % 360);
+    d.style.setProperty("--fam", `hsl(${hue} 95% 65%)`);
+    let s = 0;
+    l.tokens.forEach(t => {
+      const sp = document.createElement("span");
+      sp.className = "w " + t.kind;
+      sp.textContent = t.t.trimEnd();
+      sp.dataset.step = v.flow[s];        // the 16th note this word starts on
+      s += t.syl;
+      d.appendChild(sp);
+      const gap = t.t.slice(t.t.trimEnd().length) || (t.kind === "adlib" ? " " : "");
+      if (gap) d.appendChild(document.createTextNode(gap));
+    });
+    const g = document.createElement("div"); g.className = "grid";
+    for (let k = 0; k < 16; k++) { const c = document.createElement("i"); if (k % 4 === 0) c.className = "q"; g.appendChild(c); }
+    d.appendChild(g);
     lyrics.appendChild(d);
     lineEls[vi].push(d);
   });
@@ -112,8 +136,8 @@ function rap(text, seconds) {
   if (!("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
-  const words = text.split(/\s+/).length;
-  u.rate = Math.min(2.2, Math.max(0.9, words / (2.6 * seconds)));
+  // every line is 12 syllables; a voice at rate 1 says about 4 syllables a second
+  u.rate = Math.min(3, Math.max(0.8, 12 / (4 * seconds)));
   u.pitch = 0.8;
   speechSynthesis.speak(u);
 }
@@ -139,13 +163,22 @@ async function perform() {
         if (SNARE.includes(n % 16)) noise(t, 0.18, 1200, 0.6);
         if (n % 2 === 0) noise(t, 0.04, 7000, 0.25);
         const li = Math.floor(n / stepsPerLine) - 1;
+        const scale = stepsPerLine / 16, sub = n % stepsPerLine;
+        if (li >= 0 && li < v.lines.length && sub % scale === 0) {
+          const el = lineEls[vi][li], st = sub / scale;
+          setTimeout(() => {
+            el.querySelectorAll(`.w[data-step="${st}"]`).forEach(w => w.classList.add("hit"));
+            const cell = el.querySelectorAll(".grid i")[st];
+            if (v.flow.includes(st)) cell.classList.add("hit");
+          }, Math.max(0, (t - ctx.currentTime) * 1000));
+        }
         if (n % stepsPerLine === 0 && li >= 0 && li < v.lines.length) {
           setTimeout(() => {
             lineEls[vi].forEach(e => e.classList.remove("on"));
             const el = lineEls[vi][li];
             el.classList.add("on");
             el.scrollIntoView({ behavior: "smooth", block: "center" });
-            rap(v.lines[li].pre + v.lines[li].end, stepsPerLine * step);
+            rap(v.lines[li].tokens.map(t => t.t).join(" "), stepsPerLine * step * 13 / 16);
           }, Math.max(0, (t - ctx.currentTime) * 1000));
         }
         n++;
@@ -156,6 +189,7 @@ async function perform() {
     });
     lineEls[vi].forEach(e => e.classList.remove("on"));
   }
+  document.querySelectorAll(".hit").forEach(e => e.classList.remove("hit"));
   document.getElementById("go").disabled = false;
   document.getElementById("mc").textContent = "🎤 mic drop. run spit.py again for a new verse.";
 }
