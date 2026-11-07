@@ -67,37 +67,88 @@ SUFFERING = {"bug", "sleep", "coffee", "conflict", "segfault", "null", "pointer"
 
 # Every line is exactly 12 syllables, one per 16th note, with the last one landing on the snare.
 SYLLABLES_PER_BAR = 12
-FLOW = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]  # which 16th note each syllable lands on
+FLOW = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]  # 16th note each syllable lands on
 
-# {e} = end rhyme, {r}/{s} = internal rhymes (same family as {e}), {a}/{b} = any whack() word
-TEMPLATES = {
-    "FLEXING": [
-        "Pull up with a {r} and a {a}, now I'm the {e}",
-        "They call me MC {R}, I'm the king of the {e}",
-        "{R} in the bag, {a} on my {e}",
-        "Sponsored by {r}, yeah I'm flexing on {e}",
-        "Diamonds on my {r}, gold chain made of {e}",
-        "Hands up for the {r}, hands up for the {e}",
-        "Got a {r}, got a {a}, call me {e}",
-        "My {r} so cold, my {a} so {e}",
-        "{R}, {S}, I'm the {a} {e}",
-        "I don't chase {r}, I just catch the {e}",
-    ],
-    "CRYING AT 3AM": [
-        "Mama said no {r}, so I ran it on {e}",
-        "{R} at three AM, still chasing that {e}",
-        "I ain't got {r}, I ain't got {e}",
-        "Pass me the {r} and the {a}, it's {e}",
-        "My {a} hit a {r}, now my life is {e}",
-        "Ten cups of {r} and I'm still on {e}",
-        "{R}, {S}, my {a} is {e}",
-        "Every time I {r}, I get a {e}",
-        "Tears on my {r}, it's a {a} {e}",
-        "Rubber duck, tell me why my {r} is {e}",
-    ],
+# How each whack() word reads as a noun phrase, so openers stay grammatical.
+NOUN = {
+    "whack": "a whack", "hack": "a hack", "duck": "a duck", "quack": "a quack",
+    "goose": "a goose", "honk": "a honk", "bug": "a bug", "feature": "a feature",
+    "warwick": "Warwick", "oculus": "Oculus", "compsoc": "CompSoc", "marshall": "Marshall",
+    "wace": "Wace", "brevan": "Brevan", "howard": "Howard", "capital": "Capital",
+    "one": "Capital One", "bloomberg": "Bloomberg", "netcraft": "Netcraft",
+    "incident": "an incident", "io": "IO", "pizza": "cold pizza", "coffee": "coffee",
+    "sleep": "no sleep", "deploy": "a deploy", "merge": "a merge", "conflict": "a conflict",
+    "commit": "a commit", "push": "a push", "prod": "prod", "segfault": "a segfault",
+    "null": "a null", "pointer": "a pointer", "stack": "the stack", "overflow": "an overflow",
+    "semicolon": "a semicolon", "rubber": "rubber", "demo": "the demo", "pitch": "the pitch",
+    "prize": "the prize", "midnight": "midnight", "wifi": "the wifi",
 }
-FALLBACKS = ["{R}, {S}, {e}", "{R}, {e}"]
-ADLIBS = ["yo", "uh", "yeah", "skrrt", "huh", "quack"]
+
+# First half of a bar: {n} is a whack() word as a noun phrase.
+OPENERS = {
+    "FLEXING": ["Shout out to {n},", "Rolling with {n},", "Big up {n},", "Flexing on {n},",
+                "Pull up with {n},", "Bow down to {n},", "Got {n} on my chain,"],
+    "CRYING AT 3AM": ["Blame it on {n},", "Woke up to {n},", "Crying over {n},",
+                      "Nothing but {n},", "Got {n} on my mind,", "Haunted by {n},",
+                      "Lost it to {n},"],
+}
+
+# Second half of a bar: hand-written, always ends on a rhyme. Keyed by rhyme family.
+CLOSERS = {
+    "ack": ["my code is out of whack", "I'm the king of the hack", "the duck just said quack",
+            "it's overflowing the stack", "and I'm never looking back", "I'm back on track"],
+    "uck": ["I'm talking to a rubber duck", "my build is stuck", "I'm out of luck"],
+    "oose": ["I'm chased by a goose", "my code is running loose", "I'm running on juice"],
+    "onk": ["the goose just went honk", "the server went bonk", "my laptop went plonk"],
+    "ug": ["it's not a feature, it's a bug", "I just pulled the plug",
+           "the judges gave a shrug", "more coffee in my mug"],
+    "eature": ["that bug is a feature", "I'm a sleepless creature", "don't tell the teacher"],
+    "ick": ["I'm coding at Warwick", "my code is looking slick", "I've got a new trick"],
+    "iculous": ["they're watching through Oculus", "this bug is ridiculous",
+                "my code is meticulous"],
+    "ock": ["I'm hanging with CompSoc", "I'm racing the clock", "my code is solid rock"],
+    "artial": ["the judges look at Marshall", "my tests only pass partial"],
+    "ace": ["I'm sponsored by Wace", "I'm winning the race", "a smile on my face",
+            "I'm lost in space"],
+    "even": ["I'm hanging with Brevan", "it's quarter past seven", "this pizza is heaven"],
+    "oward": ["shout out to Howard", "I'm caffeine powered", "I haven't showered"],
+    "apital": ["I'm sponsored by Capital", "my all-nighters are habitual",
+               "I'm headed to the hospital"],
+    "un": ["shout out to Capital One", "I'm not having fun", "my code is never done",
+           "the battle is won"],
+    "erg": ["I'm trading at Bloomberg", "my code just hit an iceberg"],
+    "aft": ["I'm scanning with Netcraft", "I'm shipping a first draft", "the judges just laughed"],
+    "ident": ["I'm raising an incident", "I'm feeling so confident", "it wasn't an accident"],
+    "o": ["it's logged on incident IO", "my stack's about to overflow", "I'm ready to demo",
+          "the wifi is slow", "I'm ready to go"],
+    "eeza": ["I'm eating cold pizza", "I'm flying to Ibiza"],
+    "offee": ["I'm running on coffee", "I'm chewing on toffee", "we're taking the trophy"],
+    "eep": ["I haven't had sleep", "the bugs run deep", "the pizza was cheap"],
+    "oy": ["I'm ready to deploy", "it's bugs I destroy", "this hackathon's a joy"],
+    "erge": ["I'm scared to merge", "I'm feeling the urge", "my code's on the verge"],
+    "ict": ["I've got a merge conflict", "the linter is strict", "it's just what they predict"],
+    "it": ["I'm making a commit", "I'm never gonna quit", "this demo is lit"],
+    "ush": ["I'm ready to push", "I'm hiding in a bush", "the deadline's an ambush"],
+    "od": ["I'm testing in prod", "the judges just nod", "I'm rolling with my squad",
+           "I'm coding like a god"],
+    "ault": ["I just hit a segfault", "and it's all my fault", "my code came to a halt"],
+    "ull": ["the pointer is null", "my brain feels so dull", "the pizza box is full"],
+    "ointer": ["I dereferenced a pointer", "I'm waving a laser pointer"],
+    "olon": ["I forgot a semicolon", "my eyes are all swollen", "the bugs keep on rollin'"],
+    "ubber": ["my duck is made of rubber", "debugging with my brother"],
+    "itch": ["I'm practising my pitch", "I've hit another glitch", "I'm gonna get rich"],
+    "ize": ["we're winning the prize", "bags under my eyes", "my code is full of lies"],
+    "ight": ["I'm coding past midnight", "I'm up all night", "my screen is too bright"],
+    "ifi": ["there's no wifi", "I'm lagging on the wifi", "I'm living in sci-fi"],
+}
+for _fam, _lines in CLOSERS.items():  # closers can end on words the family list didn't have
+    _members, _fillers = FAMILIES[_fam]
+    for _line in _lines:
+        _last = _line.split()[-1].lower()
+        if _last not in _members and _last not in _fillers:
+            _fillers.append(_last)
+RHYMES_OF = {fam: set(m) | set(f) for fam, (m, f) in FAMILIES.items()}
+ADLIBS = ["yo,", "uh,", "yeah,", "skrrt,", "huh,", "quack,"]
 
 SYL_OVERRIDES = {
     "io": 2, "oculus": 3, "warwick": 2, "wace": 1, "capital": 3, "bloomberg": 2,
@@ -110,7 +161,7 @@ SYL_OVERRIDES = {
     "y'all": 1, "rollin'": 2, "pointer": 2, "conflict": 2, "commit": 2, "marshall": 2,
     "brevan": 2, "howard": 2, "segfault": 2, "default": 2, "assault": 2, "skrrt": 1,
     "chasing": 2, "sponsored": 2, "flexing": 2, "mona": 2, "lisa": 2, "quack": 1,
-    "fire": 1, "life": 1, "time": 1, "cold": 1, "made": 1, "one": 1, "whack": 1,
+    "fire": 1, "crying": 2, "flying": 2, "trading": 2, "io": 2, "ibiza": 3, "o'clock": 2, "hospital": 3, "all-nighters": 3, "caffeine": 2, "sleepless": 2, "deadline's": 2, "hackathon's": 3, "dereferenced": 4, "practising": 3, "compsoc": 2, "capital": 3, "life": 1, "time": 1, "cold": 1, "made": 1, "one": 1, "whack": 1,
 }
 
 
@@ -132,65 +183,58 @@ def tok(text, kind, fam=None):
     return {"t": text, "syl": syl(text), "kind": kind, "fam": fam}
 
 
-def render(template, fill):
-    """Splits a template into tokens: plain text, slot words, internal rhymes, end rhyme."""
-    out = []
-    for part in re.split(r"(\{[a-zA-Z]\})", template):
-        if not part:
-            continue
-        m = re.fullmatch(r"\{([a-zA-Z])\}", part)
-        if not m:
-            out.append(tok(part, "text"))
-            continue
-        key = m.group(1)
-        word, kind, fam = fill[key.lower()]
-        out.append({**tok(word.upper() if key.isupper() else word, kind, fam)})
-    return out
+def line_tokens(words, fam):
+    """One token per word, tagged as end rhyme, internal rhyme, ad-lib or plain."""
+    toks = []
+    for i, w in enumerate(words):
+        bare = re.sub(r"[^a-z'-]", "", w.lower())
+        if w in ADLIBS:
+            kind = "adlib"
+        elif i == len(words) - 1:
+            kind = "end"
+        elif bare in RHYMES_OF[fam]:
+            kind = "rhyme"
+        else:
+            kind = "word"
+        toks.append({"t": w + " ", "syl": syl(w), "kind": kind, "fam": fam})
+    toks[-1]["t"] = toks[-1]["t"].strip()
+    return toks
 
 
-def build_line(templates, end, end_from_whack, words, feed, used):
-    """Finds a template + whack() words that make exactly 12 syllables, with internal rhymes."""
-    fam = FAMILY_OF.get(end) or next(f for f, (_, fill) in FAMILIES.items() if end in fill)
-    members, fillers = FAMILIES[fam]
-    present = set(words)
-    rhymes = [w for w in members if w in present and w != end]           # whack-on-whack first
-    rhymes += [w for w in members + fillers if w not in rhymes and w != end]
+def build_line(mood, fam, words, used, want_end=None):
+    """An opener built on a whack() word + a hand-written closer, padded to exactly 12 syllables.
+    Prefers a whack() word that rhymes with the closer (an internal rhyme)."""
+    present = list(dict.fromkeys(words))
     best = None
-    for template in templates + FALLBACKS:
-        slots = set(re.findall(r"\{([a-z])\}", template.lower())) - {"e"}
-        need_r = [k for k in ("r", "s") if k in slots]
-        need_a = [k for k in ("a", "b") if k in slots]
-        r_choices = [rhymes[i:i + len(need_r)] for i in range(len(rhymes) - len(need_r) + 1)]
-        for rs in r_choices:
-            pool = [w for w in feed[:12] if w != end and w not in rs]
-            for As in ([[]] if not need_a else [[w] for w in pool]):
-                fill = {"e": (end, "end", fam)}
-                for k, w in zip(need_r, rs):
-                    fill[k] = (w, "rhyme", fam)
-                for k, w in zip(need_a, As):
-                    fill[k] = (w, "word", None)
-                toks = render(template, fill)
-                gap = SYLLABLES_PER_BAR - sum(t["syl"] for t in toks)
-                if gap < 0 or (template in FALLBACKS and best and best[0][0] <= 4):
+    for closer in CLOSERS[fam]:
+        if closer in used:
+            continue
+        end = closer.split()[-1].lower()
+        for opener in OPENERS[mood]:
+            for w in present:
+                text = opener.format(n=NOUN[w]) + " " + closer
+                gap = SYLLABLES_PER_BAR - syl(text)
+                if gap < 0:
                     continue
-                n_whack = sum(w in present for w in rs)
-                key = (gap + 2 * used[template], -n_whack, random.random())
+                rhymes = (w in RHYMES_OF[fam] and w != end) + (end in words) + (end == want_end)
+                key = (gap - 4 * rhymes + 3 * used[opener] + 0.5 * used[w], random.random())
                 if best is None or key < best[0]:
-                    best = (key, toks, As, n_whack, template)
+                    best = (key, text, closer, opener, w, gap)
     if best is None:
-        raise RuntimeError("no line fits")
-    (gap, *_), toks, As, n_whack, template = best
-    used[template] += 1
-    for w in As:  # used words go to the back of the queue
-        feed.remove(w)
-        feed.append(w)
-    first = toks[0]["t"]
-    if gap and not first.startswith(("I ", "I'", "MC")) and not first.isupper():
-        toks[0]["t"] = first[0].lower() + first[1:]
-    toks = [tok(random.choice(ADLIBS) + ",", "adlib") for _ in range(gap)] + toks
-    toks[0]["t"] = toks[0]["t"][0].upper() + toks[0]["t"][1:]
-    return {"tokens": toks, "end": end, "family": fam, "whack": end_from_whack,
-            "whack_rhymes": n_whack}
+        return None
+    _, text, closer, opener, w, gap = best
+    used[closer] += 1
+    used[opener] += 1
+    used[w] += 1
+    out = text.split()
+    if gap:
+        if out[0] not in ("I", "I'm") and not out[0][1:2].isupper():
+            out[0] = out[0][0].lower() + out[0][1:]
+        out = [random.choice(ADLIBS) for _ in range(gap)] + out
+        out[0] = out[0].capitalize()
+    end = closer.split()[-1].lower()
+    return {"tokens": line_tokens(out, fam), "end": end, "family": fam,
+            "whack": end in words, "whack_rhymes": int(w in RHYMES_OF[fam] and w != end)}
 
 
 def hook_line(lead, words):
@@ -219,24 +263,20 @@ def build_verse(words, file_words):
     hook_word, hook_count = counts[0]
     hook_word_2 = counts[-1][0]
 
-    feed = list(words)
-    unused = list(dict.fromkeys(words))  # end words: whack() output in order, no repeats
     lines, used = [], Counter()
-    for _ in range(bars // 2):
-        first = unused.pop(0) if unused else random.choice(words)
-        fam = FAMILY_OF[first]
-        partner = next((w for w in unused if FAMILY_OF[w] == fam), None)
-        if partner:
-            unused.remove(partner)
-        second = partner or random.choice([w for w in FAMILIES[fam][1] if w != first])
-        for end, from_whack in ((first, True), (second, bool(partner))):
-            templates = TEMPLATES[mood]
-            lines.append(build_line(templates, end, from_whack, words, feed, used))
+    fams = list(dict.fromkeys(FAMILY_OF[w] for w in words))  # rhyme families, in whack() order
+    spare = [f for f in CLOSERS if f not in fams]
+    random.shuffle(spare)
+    for fam in fams + spare:  # families whack() gave come first, then any others
+        if len(lines) >= bars:
+            break
+        pair = [build_line(mood, fam, words, used) for _ in range(2)]
+        if all(pair):
+            lines += pair
 
     hook = [hook_line([], [hook_word, hook_word_2]),
             hook_line(["Everybody say"], [hook_word])]
-    whack_rhymes = sum(l["whack_rhymes"] for l in lines) + sum(
-        l["whack"] for l in lines[1::2])
+    whack_rhymes = sum(l["whack_rhymes"] + l["whack"] for l in lines)
     return {
         "words": words, "count": n, "bars": bars, "bpm": bpm, "mood": mood,
         "hook": hook_word, "hook_count": hook_count, "lines": lines + hook + hook,
@@ -270,7 +310,7 @@ def show(v):
         c = fams.setdefault(line["family"], COLOURS[len(fams) % len(COLOURS)])
         parts, plain = [], 0
         for t in line["tokens"]:
-            text = t["t"] + (" " if t["kind"] == "adlib" else "")
+            text = t["t"]
             plain += len(text)
             if t["kind"] == "end":
                 parts.append(f"\033[1;4;{c}m{text}\033[0m")
